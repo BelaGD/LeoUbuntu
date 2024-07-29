@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Gerentes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-top: 20px;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #333;
+            color: #fff;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .form-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+
+        .form-container h2 {
+            margin-top: 0;
+        }
+
+        .form-container input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-container button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #5cb85c;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .form-container button:hover {
+            background-color: #4cae4c;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <!-- Aquí puedes agregar elementos de navegación si es necesario -->
+    </header>
+    <div class="container">
+        <h1>Gestión de Gerentes</h1>
+
+        <!-- Formulario para agregar nuevos gerentes -->
+        <div class="form-container">
+            <h2>Agregar Gerente</h2>
+            <form id="manager-form">
+                <input type="text" id="first_name" placeholder="Nombre" required>
+                <input type="text" id="last_name" placeholder="Apellido" required>
+                <input type="email" id="email" placeholder="Email" required>
+                <button type="submit">Agregar Gerente</button>
+            </form>
+        </div>
+
+        <!-- Tabla para mostrar los gerentes -->
+        <table id="managers-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Email</th>
+                    <th>Creado en</th>
+                    <th>Actualizado en</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Los datos se insertarán aquí -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Función para cargar los datos de los gerentes
+        function loadManagers() {
+            fetch('http://localhost:3000/api/Manager')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(managers => {
+                    const tableBody = document.getElementById('managers-table').getElementsByTagName('tbody')[0];
+                    tableBody.innerHTML = ''; // Limpiar la tabla antes de insertar nuevos datos
+
+                    managers.forEach(manager => {
+                        const row = tableBody.insertRow();
+                        row.insertCell(0).textContent = manager.id || 'N/A';
+                        row.insertCell(1).textContent = manager.first_name || 'N/A';
+                        row.insertCell(2).textContent = manager.last_name || 'N/A';
+                        row.insertCell(3).textContent = manager.email || 'N/A';
+                        row.insertCell(4).textContent = manager.created_at || 'N/A';
+                        row.insertCell(5).textContent = manager.updated_at || 'N/A';
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // Función para agregar un nuevo gerente
+        function addManager(event) {
+            event.preventDefault(); // Prevenir el envío del formulario
+
+            const first_name = document.getElementById('first_name').value;
+            const last_name = document.getElementById('last_name').value;
+            const email = document.getElementById('email').value;
+
+            fetch('http://localhost:3000/api/Manager', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ first_name, last_name, email })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(() => {
+                    // Cargar los gerentes nuevamente después de agregar uno nuevo
+                    loadManagers();
+                    // Limpiar el formulario
+                    document.getElementById('manager-form').reset();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        // Cargar los gerentes cuando se cargue la página
+        document.addEventListener('DOMContentLoaded', loadManagers);
+
+        // Manejar el envío del formulario
+        document.getElementById('manager-form').addEventListener('submit', addManager);
+    </script>
+</body>
+
+</html>
